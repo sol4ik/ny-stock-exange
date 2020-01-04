@@ -1,0 +1,109 @@
+---
+title: "Tesla, Inc. Stocks Research"
+output: pdf_document
+---
+```{r, echo=FALSE, message=FALSE}
+require(ggplot2)
+library(ggplot2)
+```
+## Task description
+Nowadays it is quite popular though that any person can make money on stock exchange - all you need is starter money and some knowledge.  
+We decided to check if it is possible to get a big revenue from some big companies without much effort.  
+
+## Data description
+For our research we first wanted to use the [**New York Stock Exchange dataset**](https://www.kaggle.com/dgawlik/nyse) that consists of the historical data on New York Stock Exchange from 2012 until 2016 parced from Yahoo Finance. But since tha data are quite outdated and we do not need the data on all the companies, we decided to get similar data.  
+For our final dataset we downloaded the historical data on **Tesla, Inc.** stocks from Yahoo Finanace (same resource the author of the previous dataset used) from January 5, 2015 until January 4, 2020.  
+You can find the .csv file created [**here**](https://github.com/sol4ik/tsla-stocks-research/blob/master/TSLA.csv).  
+We're going to load the data and see what we have.  
+```{r, message=FALSE}
+tsla.data <- read.csv("TSLA.csv")
+head(tsla.data)
+```
+Here we have a data frame consisting of **7 different columns** and **1259** rows. What do these data mean?  
+Each row in tha data frame represent a day, the stock was out on a market. The date of the day can be found in the **date** column, consisting of date objects.  
+All the follwoing columns, except for the last one, tell us about the **price** of the stock. The **open** and **close** close columns tells the price of the stock when the market opened and closed on that day. The **low** and **high** column consist of the lowest and the highest values the stock price reached during the day. **Adj.Close** column consists of the adjusted close price adjusted for both dividends and splits, althou it almost always is the same as the close one.  
+The last column - **volume** - consists of integer values refering to the numbers of shares that have been bought and sold for the day.  
+   
+## Data analysis
+Let's first check how Tesla stock prices behaved themselves during the last five years.  
+```{r, echo=FALSE, message=FALSE}
+ggplot(tsla.data) +
+  geom_line(aes(x = seq(1:nrow(tsla.data)), y = Close),
+            color="blue") +
+  labs(x = "Time, day", y="Stock price, $", title="Tesla, Inc. stock prices",
+       subtitle="based on data from Jan.5, 2015 until Jan.4, 2020") + 
+   theme(axis.text.x=element_blank(),
+         axis.ticks.x=element_blank(),
+         axis.ticks.y=element_blank())
+```
+As we can see here, the stock prices have significantly increased during last months. Let's then check if we can make some good money here :)  
+  
+### Introducing new metric
+Since we wanted to check if we can make easy money on Tesla we'll test one of the easiest way - buying the shares one day and selling them just next day. Even easier way that does not envolve any tracking - buying and selling at the same time.  
+For our case let's take the buying and selling time to be just before the market is closing.  
+For this we'll need a **daily return** notion - the amount of stock price daily growth or descend. Daily return is calculated by a simple intuitive formula
+$$R_t =  \frac{C_t - C_{t-1}}{C_{t-1}} = \frac{C_t}{C_{t-1}} - 1$$
+```{r}
+tsla.data$PrevClose <- tsla.data$Close
+# since there is no previous day for the first day, we'll get NA value
+# in order not to get NA in further calculations we'll get rid of the first day
+tsla.data <- na.omit(transform(tsla.data, PrevClose = c(NA, PrevClose[-nrow(tsla.data)])))
+tsla.data$DailyRet <- with(tsla.data, Close / PrevClose - 1)
+
+head(tsla.data)
+```
+Now we'll see what we can say on the daily return values we got.  
+We can start off with some simple numeric characterics.
+```{r}
+cat("mean value: ", mean(tsla.data$DailyRet), "  ")
+cat("max value: ", max(tsla.data$DailyRet), "  ")
+cat("min value: ", min(tsla.data$DailyRet))
+```
+Looking at these numbers we already can say that day-to-day changes in the stock prices were not that significant during the last five years. It drives us to a conculsion that the strategy of selling the shares just the next day is **not the best strategy for a good money income, although it's a safe one** - you will not loose much if something goes wrong.  
+   
+Still, daily return can give even more information on some company stock prices - daily return can be used to derrive **annual return**.   
+Annual return can be calucated with a single daily return value by the following formula
+$$Y = (D + 1)^{365} - 1$$
+We're now going to add one more column with calucated annual return.
+```{r, echo=FALSE, message=FALSE}
+power <- function(x, n) {
+  res <- 1
+  for (i in 1:n) {
+    res <- res * x
+  }
+  return(res)
+}
+```
+
+```{r}
+tsla.data$YearRet <- with(tsla.data, power(DailyRet + 1, 365) - 1)
+head(tsla.data)
+```
+Now we can analyze what data we get.  
+Again we'll start with some simple characteristics.  
+```{r}
+cat("mean value: ", mean(tsla.data$YearRet), "  ")
+cat("max value: ", max(tsla.data$YearRet), "  ")
+cat("min value: ", min(tsla.data$YearRet))
+```
+The data we got seem quite interesting and not that self-explanatory. For further we'll first vizualise all the data we got on annual return.
+```{r, echo=FALSE, message=FALSE}
+ggplot(tsla.data, aes(x = tsla.data$YearRet)) +
+  geom_histogram(color="salmon3", fill="salmon1") +
+  geom_vline(aes(xintercept = mean(tsla.data$YearRet))) +
+  geom_vline(aes(xintercept = mean(tsla.data$YearRet) + sd(tsla.data$YearRet)),
+             color="brown", linetype="dashed") +
+  geom_vline(aes(xintercept = mean(tsla.data$YearRet) - sd(tsla.data$YearRet)),
+             color="brown", linetype="dashed") +
+  geom_density(color="red3") +
+  labs(x = "Annual return",
+       title = "Histogram of annual returns returns on Tesla, Inc. stock prices",
+       subtitle="based on data from Jan.6, 2015 until Jan.4, 2020") +
+  theme(axis.title.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.text.y=element_blank())
+```
+It is natural to suggest that we have a normal distribution here as there always is lower probability to get a great income or loss, but greater probability 
+
+```{r}
+```
