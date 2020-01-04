@@ -1,6 +1,0 @@
----
-title: "New York Stock Stock Exange Research"
-output: pdf_document
----
-```{r}
-```
