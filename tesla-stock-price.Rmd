@@ -63,7 +63,7 @@ Looking at these numbers we already can say that day-to-day changes in the stock
    
 Still, daily return can give even more information on some company stock prices - daily return can be used to derrive **annual return**.   
 Annual return can be calucated with a single daily return value by the following formula
-$$Y = (D + 1)^{365} - 1$$
+$$Y_t = (R_t + 1)^{365} - 1$$
 We're now going to add one more column with calucated annual return.
 ```{r, echo=FALSE, message=FALSE}
 power <- function(x, n) {
@@ -88,12 +88,32 @@ cat("min value: ", min(tsla.data$YearRet))
 ```
 The data we got seem quite interesting and not that self-explanatory. For further we'll first vizualise all the data we got on annual return.
 ```{r, echo=FALSE, message=FALSE}
-ggplot(tsla.data, aes(x = tsla.data$YearRet)) +
+ggplot(tsla.data, aes(x = YearRet)) +
   geom_histogram(color="salmon3", fill="salmon1") +
-  geom_vline(aes(xintercept = mean(tsla.data$YearRet))) +
-  geom_vline(aes(xintercept = mean(tsla.data$YearRet) + sd(tsla.data$YearRet)),
+  geom_vline(aes(xintercept = mean(YearRet))) +
+  geom_vline(aes(xintercept = mean(YearRet) + sd(YearRet)),
              color="brown", linetype="dashed") +
-  geom_vline(aes(xintercept = mean(tsla.data$YearRet) - sd(tsla.data$YearRet)),
+  geom_vline(aes(xintercept = mean(YearRet) - sd(YearRet)),
+             color="brown", linetype="dashed") +
+  labs(x = "Annual return",
+       title = "Histogram of annual returns returns on Tesla, Inc. stock prices",
+       subtitle="based on data from Jan.6, 2015 until Jan.4, 2020") +
+  theme(axis.title.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.text.y=element_blank())
+```
+As we can see the data turned to have some quite extreme values and the plot does not help much. In order to fix this we're going to take the logarithm on the y axis, since we're working with ratios, and plot the data we got.
+```{r, message=FALSE}
+log.ret <- na.omit(with(tsla.data, log2(YearRet)))
+head(log.ret)
+```
+```{r, echo=FALSE, message=FALSE}
+ggplot(data.frame(data = log.ret), aes(x = data)) +
+  geom_histogram(aes(y=..density..), color="salmon3", fill="salmon1") +
+  geom_vline(aes(xintercept = mean(data))) +
+  geom_vline(aes(xintercept = mean(data) + sd(data)),
+             color="brown", linetype="dashed") +
+  geom_vline(aes(xintercept = mean(data) - sd(data)),
              color="brown", linetype="dashed") +
   geom_density(color="red3") +
   labs(x = "Annual return",
