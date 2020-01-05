@@ -11,8 +11,8 @@ Nowadays it is quite popular though that any person can make money on stock exch
 We decided to check if it is possible to get a big revenue from some big companies without much effort.  
 
 ## Data description
-For our research we first wanted to use the [**New York Stock Exchange dataset**](https://www.kaggle.com/dgawlik/nyse) that consists of the historical data on New York Stock Exchange from 2012 until 2016 parced from Yahoo Finance. But since tha data are quite outdated and we do not need the data on all the companies, we decided to get similar data.  
-For our final dataset we downloaded the historical data on **Tesla, Inc.** stocks from Yahoo Finanace (same resource the author of the previous dataset used) from January 5, 2015 until January 4, 2020.  
+For our research we first wanted to use the [**New York Stock Exchange dataset**](https://www.kaggle.com/dgawlik/nyse) that consists of the historical data on New York Stock Exchange from 2012 until 2016 parsed from Yahoo Finance. But since the data are quite outdated and we do not need the data on all the companies, we decided to get similar data.  
+For our final dataset we downloaded the historical data on **Tesla, Inc.** stocks from Yahoo Finance (same resource the author of the previous dataset used) from January 5, 2015 until January 4, 2020.  
 You can find the .csv file created [**here**](https://github.com/sol4ik/tsla-stocks-research/blob/master/TSLA.csv).  
 We're going to load the data and see what we have.  
 ```{r, message=FALSE}
@@ -20,15 +20,26 @@ tsla.data <- read.csv("TSLA.csv")
 head(tsla.data)
 ```
 Here we have a data frame consisting of **7 different columns** and **1259** rows. What do these data mean?  
-Each row in tha data frame represent a day, the stock was out on a market. The date of the day can be found in the **date** column, consisting of date objects.  
-All the follwoing columns, except for the last one, tell us about the **price** of the stock. The **open** and **close** close columns tells the price of the stock when the market opened and closed on that day. The **low** and **high** column consist of the lowest and the highest values the stock price reached during the day. **Adj.Close** column consists of the adjusted close price adjusted for both dividends and splits, althou it almost always is the same as the close one.  
-The last column - **volume** - consists of integer values refering to the numbers of shares that have been bought and sold for the day.  
+Each row in the data frame represent a day, the stock was out on a market. The date of the day can be found in the **date** column, consisting of date objects.  
+All the following columns, except for the last one, tell us about the **price** of the stock. The **open** and **close** close columns tells the price of the stock when the market opened and closed on that day. The **low** and **high** column consist of the lowest and the highest values the stock price reached during the day. **Adj.Close** column consists of the adjusted close price adjusted for both dividends and splits, although it almost always is the same as the close one.  
+The last column - **volume** - consists of integer values referring to the numbers of shares that have been bought and sold for the day.  
    
 ## Data analysis
 Let's first check how Tesla stock prices behaved themselves during the last five years.  
-```{r, echo=FALSE, message=FALSE}
-ggplot(tsla.data) +
-  geom_line(aes(x = seq(1:nrow(tsla.data)), y = Close),
+```{r echo=FALSE, message=FALSE}
+graph.data = data.frame("Date"=0, "Close"=0)
+dates = tsla.data$Date
+closes = tsla.data$Close
+for (index in seq(1, nrow(tsla.data))) {
+  if (index %% 6 == 0){
+    graph.data = rbind(graph.data, list(dates[index], closes[index])) 
+  }
+}
+graph.data = graph.data[-1, ]
+
+
+ggplot(graph.data) +
+  geom_line(aes(x = seq(1:nrow(graph.data)), y = Close),
             color="blue") +
   labs(x = "Time, day", y="Stock price, $", title="Tesla, Inc. stock prices",
        subtitle="based on data from Jan.5, 2015 until Jan.4, 2020") + 
@@ -86,7 +97,7 @@ cat("mean value: ", mean(tsla.data$YearRet), "  ")
 cat("max value: ", max(tsla.data$YearRet), "  ")
 cat("min value: ", min(tsla.data$YearRet))
 ```
-The data we got seem quite interesting and not that self-explanatory. For further we'll first vizualise all the data we got on annual return.
+The data we got seem quite interesting and not that self-explanatory. For further we'll first visualize all the data we got on annual return.
 ```{r, echo=FALSE, message=FALSE}
 ggplot(tsla.data, aes(x = YearRet)) +
   geom_histogram(color="salmon3", fill="salmon1") +
@@ -108,6 +119,8 @@ log.ret <- na.omit(with(tsla.data, log2(YearRet)))
 head(log.ret)
 ```
 ```{r, echo=FALSE, message=FALSE}
+
+
 ggplot(data.frame(data = log.ret), aes(x = data)) +
   geom_histogram(aes(y=..density..), color="salmon3", fill="salmon1") +
   geom_vline(aes(xintercept = mean(data))) +
@@ -117,13 +130,28 @@ ggplot(data.frame(data = log.ret), aes(x = data)) +
              color="brown", linetype="dashed") +
   geom_density(color="red3") +
   labs(x = "Annual return",
-       title = "Histogram of annual returns returns on Tesla, Inc. stock prices",
+       title = "Histogram of annual returns on Tesla, Inc. stock prices",
        subtitle="based on data from Jan.6, 2015 until Jan.4, 2020") +
   theme(axis.title.y=element_blank(),
         axis.ticks.y=element_blank(),
         axis.text.y=element_blank())
 ```
+
 It is natural to suggest that we have a normal distribution here as there always is lower probability to get a great income or loss, but greater probability 
 
 ```{r}
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
