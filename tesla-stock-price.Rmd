@@ -30,9 +30,12 @@ Let's first check how Tesla stock prices behaved themselves during the last five
 graph.data = data.frame("Date"=0, "Close"=0)
 dates = tsla.data$Date
 closes = tsla.data$Close
+tmp = 0
 for (index in seq(1, nrow(tsla.data))) {
+  tmp = tmp + closes[index]
   if (index %% 6 == 0){
-    graph.data = rbind(graph.data, list(dates[index], closes[index])) 
+    graph.data = rbind(graph.data, list(dates[index], tmp / 6)) 
+    tmp = 0
   }
 }
 graph.data = graph.data[-1, ]
