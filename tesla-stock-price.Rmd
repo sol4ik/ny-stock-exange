@@ -5,6 +5,8 @@ output: pdf_document
 ```{r, echo=FALSE, message=FALSE}
 require(ggplot2)
 library(ggplot2)
+require(moments)
+library(moments)
 ```
 ## Task description
 Nowadays it is quite popular though that any person can make money on stock exchange - all you need is starter money and some knowledge.  
@@ -26,9 +28,21 @@ The last column - **volume** - consists of integer values refering to the number
    
 ## Data analysis
 Let's first check how Tesla stock prices behaved themselves during the last five years.  
+For a better of the plot we're going to plot every 6$^{th}$ day data, we'll show later why it doesn't change much.  
 ```{r, echo=FALSE, message=FALSE}
-ggplot(tsla.data) +
-  geom_line(aes(x = seq(1:nrow(tsla.data)), y = Close),
+graph.data <- data.frame("Date"=0, "Close"=0)
+dates <- tsla.data$Date
+closes <- tsla.data$Close
+tmp <- 0
+for (index in seq(1, nrow(tsla.data), by=6)) {
+  tmp <- tmp + closes[index]
+  graph.data <- rbind(graph.data, list(dates[index], tmp / 6)) 
+  tmp <- 0
+}
+graph.data <- graph.data[-1, ]
+
+ggplot(graph.data) +
+  geom_line(aes(x = seq(1:nrow(graph.data)), y = Close),
             color="blue") +
   labs(x = "Time, day", y="Stock price, $", title="Tesla, Inc. stock prices",
        subtitle="based on data from Jan.5, 2015 until Jan.4, 2020") + 
@@ -86,7 +100,8 @@ cat("mean value: ", mean(tsla.data$YearRet), "  ")
 cat("max value: ", max(tsla.data$YearRet), "  ")
 cat("min value: ", min(tsla.data$YearRet))
 ```
-The data we got seem quite interesting and not that self-explanatory. For further we'll first vizualise all the data we got on annual return.
+The data we got seem quite interesting and not that self-explanatory. For further we'll first vizualise all the data we got on annual return.  
+  
 ```{r, echo=FALSE, message=FALSE}
 ggplot(tsla.data, aes(x = YearRet)) +
   geom_histogram(color="salmon3", fill="salmon1") +
@@ -96,15 +111,16 @@ ggplot(tsla.data, aes(x = YearRet)) +
   geom_vline(aes(xintercept = mean(YearRet) - sd(YearRet)),
              color="brown", linetype="dashed") +
   labs(x = "Annual return",
-       title = "Histogram of annual returns returns on Tesla, Inc. stock prices",
+       title = "Histogram of annual returns on Tesla, Inc. stock prices",
        subtitle="based on data from Jan.6, 2015 until Jan.4, 2020") +
   theme(axis.title.y=element_blank(),
         axis.ticks.y=element_blank(),
         axis.text.y=element_blank())
 ```
-As we can see the data turned to have some quite extreme values and the plot does not help much. In order to fix this we're going to take the logarithm on the y axis, since we're working with ratios, and plot the data we got.
-```{r, message=FALSE}
-log.ret <- na.omit(with(tsla.data, log2(YearRet)))
+As we can see the data turned to have some quite extreme values and the plot does not help much. In order to fix this we're going to take the logarithm on the y axis, since we're working with ratios, and plot the data we got.  
+```{r, message=FALSE, warning=FALSE}
+log.ret <- with(tsla.data, log2(YearRet))
+log.ret <- log.ret[!is.nan(log.ret) & !is.infinite(log.ret)]
 head(log.ret)
 ```
 ```{r, echo=FALSE, message=FALSE}
@@ -116,14 +132,16 @@ ggplot(data.frame(data = log.ret), aes(x = data)) +
   geom_vline(aes(xintercept = mean(data) - sd(data)),
              color="brown", linetype="dashed") +
   geom_density(color="red3") +
-  labs(x = "Annual return",
-       title = "Histogram of annual returns returns on Tesla, Inc. stock prices",
+  labs(x = "log Annual return",
+       title = "Histogram of log of annual returns on Tesla, Inc. stock prices",
        subtitle="based on data from Jan.6, 2015 until Jan.4, 2020") +
   theme(axis.title.y=element_blank(),
         axis.ticks.y=element_blank(),
         axis.text.y=element_blank())
 ```
-It is natural to suggest that we have a normal distribution here as there always is lower probability to get a great income or loss, but greater probability 
-
+It is natural to suggest that annual return follows a **lognormal distribution**, but as we can see the log of annual return is not that normal-lookig. For further analysis we're going to work with **$log$ annual return**. 
 ```{r}
+cat("skewness: ", skewness(log.ret), " ")
+cat("kurtosis: ", kurtosis(log.ret))
 ```
+
