@@ -164,7 +164,7 @@ ggplot(data.frame(data = log.ret), aes(x = data)) +
         axis.text.y=element_blank())
 ```
 It would be expected to suggest that annual reurn follows a lognormal ditribution but since it assumes both positive and negative values lognormal distribution is not suitable here.  
-Our next suggestion here is **logistic distribution**. By its shape it may resemble a normal distribution altough it has heabier tail - meaning higher kurtosis.    
+Our next suggestion here is **logistic distribution**. By its shape it may resemble a normal distribution altough it has heavier tail - meaning higher kurtosis.    
 
 ```{r}
 ggplot(data.frame(data =log.ret), aes(x = data)) +
@@ -179,16 +179,31 @@ library(logspline)
 
 ```{r}
 # Error here!!!
-# fit.logis <- fitdistr(tsla.data$YearRet, "logistic")
+fit.logis <- fitdistr(tsla.data$YearRet, "normal")
+fit.logis
+```
+```{r}
+ks.test(log.ret, "pnorm", mean=mean(log.ret), sd=sd(log.ret))
+```
+
+```{r}
+ann.rets <- rep(0, nrow(tsla.data))
+for (i in 1:nrow(tsla.data)-365) {
+  ann.rets[i] <- tsla.data$Close[i + 365] / tsla.data$Close[i] - 1
+}
+ann.rets
+
+ggplot(data.frame(x = ann.rets), aes(x = x)) +
+  geom_histogram()
 ```
 
 ### Conclusions
 
-## Hypothesis testing
+## Linnear regression
 Getting back to the stock prices themselves, usually people use the historical data in order to analyze the pattern and be able to predict them.  
 A **linear regression** seems quite too simple model for such a difficult pattern but we need to start somewhere.  
   
-There is no sence in dependence between time and the price but there might be some **dependence between prices ob the day and the day-before**.  
+There is no sence in dependence between time and the price but there might be some **dependence between prices of the day and the day-before**.  
 $H_0:$ there is no linear regression pattern in the stock prices behaviour
 $H_1:$ stock prices depend on the prices of the previous days and they follow a linnear regression model
 For this test we'll again use the closing stock prices.
@@ -197,6 +212,7 @@ price.lm <- lm(tsla.data$Close~tsla.data$PrevClose)
 
 summary(price.lm)
 ```
+p-value of the F-test is almost 0 which means that we **reject $H_0$**. Although residual standart error is quite large to tell that model is good-fitted.   
 
 ```{r, echo=FALSE}
 ggplot(tsla.data, aes(x = PrevClose, y = Close)) +
