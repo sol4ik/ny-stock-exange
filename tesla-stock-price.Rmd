@@ -13,8 +13,8 @@ require(fitdistrplus)
 library(fitdistrplus)
 ```
 ## Task description
-Nowadays it is quite popular though that any person can make money on stock exchange - all you need is starter money and some knowledge.  
-We decided to check if it is possible to get a big revenue from some big companies without much effort.  
+Nowadays it is a quite popular thought that any person can make money on stock exchange - all you need is some starter money and a bit of knowledge.
+We decided to check if it is possible to get a big revenue from some big companies without much effort.
 
 ## Data description
 For our research we first wanted to use the [**New York Stock Exchange dataset**](https://www.kaggle.com/dgawlik/nyse) that consists of the historical data on New York Stock Exchange from 2012 until 2016 parced from Yahoo! Finance. But since tha data are quite outdated and we do not need the data on all the companies, we decided to get similar data.  
@@ -285,6 +285,13 @@ summary(price.lm)
 p-value of the F-test is almost 0 which means that we **reject $H_0$ and there is linnear relation**. Although residual standart error is quite large, as well as values of residuals statistics, to tell that model is good-fitted, as mentioned above - simple linnear regression is still too simple model for this case.   
 
 ## Conclusions
-To sum up, we can say that there are not much obvious corellations between the stock data which makes stock prices prediction not a sample task to complete.  
+To sum up, we can say that there are not much obvious corellations between the current stock price and previous closed one, which makes stock prices prediction not a simple task to complete.  
 Still, during last months Tesla, Inc. stock prices are growing quite extremely which created a good setting for a linnear regression model testing.  
 We tested linear dependence between close and previous day close prices value and it turned out to be quite good but still not the best model, since the values of residuals were quite big. We believe that it is possible to improve model results by exploring other dependencies, although in the data we got there was no more important factors that could significantly increse the model performance. 
+Overall, using our results and having an interest in new Tesla projects (e.g. new Cyber Track and Tesla Model 3) one may consider investing in Tesla stocks.
+
+
+
+
+
+
