@@ -18,7 +18,7 @@ We decided to check if it is possible to get a big revenue from some big compani
 
 ## Data description
 For our research we first wanted to use the [**New York Stock Exchange dataset**](https://www.kaggle.com/dgawlik/nyse) that consists of the historical data on New York Stock Exchange from 2012 until 2016 parced from Yahoo! Finance. But since tha data are quite outdated and we do not need the data on all the companies, we decided to get similar data.  
-For our final dataset we downloaded the historical data on **Tesla, Inc.** stocks from Yahoo! Finanacefrom January 5, 2015 until January 4, 2020.  
+For our final dataset we downloaded the historical data on **Tesla, Inc.** stocks from Yahoo! Finanace from January 5, 2015 until January 4, 2020.  
 You can find the .csv file created [**here**](https://github.com/sol4ik/tsla-stocks-research/blob/master/TSLA-5.csv).  
 We're going to load the data and see what we have.  
 ```{r, message=FALSE}
@@ -33,6 +33,7 @@ The last column - **volume** - consists of integer values refering to the number
 ## Data analysis
 Let's first check how Tesla stock prices behaved themselves during the last five years.  
 For a better look of the plot we're going to plot every 6$^{th}$ day data, we'll show later why it doesn't change much.  
+  
 ```{r, echo=FALSE, message=FALSE}
 graph.data <- data.frame("Date"=0, "Close"=0)
 dates <- tsla.data$Date
@@ -54,6 +55,7 @@ ggplot(graph.data) +
          axis.ticks.x=element_blank(),
          axis.ticks.y=element_blank())
 ```
+  
 As we can see here, the stock prices have significantly increased during last months. Let's then check if we can make some good money here :)  
   
 ### Daily return
@@ -143,12 +145,14 @@ ggplot(tsla.data, aes(x = YearRet)) +
         axis.ticks.y=element_blank(),
         axis.text.y=element_blank())
 ```
+  
 As we can see the data turned to have some quite extreme values and the plot does not help much. In order to fix this we're going to take the logarithm of the annual return, since we're working with ratios, and plot the data we got.  
 ```{r, message=FALSE, warning=FALSE}
 log.ret <- with(tsla.data, log2(YearRet))
 log.ret <- log.ret[!is.nan(log.ret) & !is.infinite(log.ret)]
 head(log.ret)
 ```
+  
 ```{r, echo=FALSE, message=FALSE}
 ggplot(data.frame(data = log.ret), aes(x = data)) +
   geom_histogram(aes(y=..density..), color="salmon3", fill="salmon1") +
@@ -165,20 +169,22 @@ ggplot(data.frame(data = log.ret), aes(x = data)) +
         axis.ticks.y=element_blank(),
         axis.text.y=element_blank())
 ```
+  
 It would be expected to suggest that annual reurn follows a lognormal ditribution but since it assumes both positive and negative values lognormal distribution is not suitable here.  
 Our next suggestion here is **logistic distribution**. By its shape it may resemble a normal distribution altough it has heavier tail - meaning higher kurtosis.    
 In order to check it we're going to run **Kolmogorov-Smirnov test for goodness-of-fit**.  
   
 $H_0:$ annual returns follow distribution $F$, being s logistic distribution with parameters $\mu = \hat{m_1}$ and $s = \frac{\sqrt{3}\hat{sd}}{\pi}$  
 $H_1:$ annual return does not follow distribution $F$
-```{r}
+```{r, warning=FALSE}
 ks.test(tsla.data$YearRet, "plogis", location=mean(tsla.data$YearRet), scale=sqrt(3) * sd(tsla.data$YearRet) / pi)
 ```
-p-value of the test is almost zero which means that our guess was wrong and we reject $H_0$.  
+p-value of the test is almost zero which means that our guess was wrong and we **reject $H_0$**.  
    
-In order to understand the distribution we'll go back to how we calculated it.  
+In order to understand the annual return distribution we'll go back to how we calculated it.  
 We used a formula $Y_t = (R_t + 1)^{365} - 1$, where $R_t$ was the value of a daily return.  
 We'll plot daily return data and try to fit them to some distribution in order to get some idea of how annual return is distributed.  
+  
 ```{r, echo=FALSE, message=FALSE}
 ggplot(tsla.data, aes(x = DailyRet)) +
   geom_histogram(aes(y=..density..), color="gold4", fill="gold1") +
@@ -195,20 +201,24 @@ ggplot(tsla.data, aes(x = DailyRet)) +
         axis.ticks.y=element_blank(),
         axis.text.y=element_blank())
 ```
+  
 ```{r}
 descdist(tsla.data$DailyRet)
 ```
+  
 It seems like daily returns might follow a logistic distribution.  
+  
 ```{r, warning=FALSE}
 fit.logis <- fitdist(tsla.data$DailyRet, "logis")
 plot(fit.logis)
 ```
+  
 ```{r}
 fit.logis
 ```
 Now we'll run a test.
 
-$H_0:$ daily returns follow a distribution $F = \mathcal{logis}(0.001, 0.01)$
+$H_0:$ daily returns follow a distribution $F = \mathcal{logis}(0.001, 0.01)$  
 $H_1:$ daily returns do not follow distribution $F$
 ```{r}
 ks.test(tsla.data$DailyRet, "plogis", location=fit.logis$estimate[1], scale=fit.logis$estimate[2])
@@ -221,7 +231,9 @@ Prodcut of two and more i.i.d. r.v.s never has the same distribution. In fact, i
 So, based on the way we calculated annual return, we make conclusion that our data on annual returns follow a **product distrubution**.  
   
 #### Conclusions
-
+As we mentioned above, the idea of making money on stocks in very short periods of time is not the best one, since the spread statistics of daily return got very small values and it's just impossible to get a great income, only unless you buy all the shares open on the market.  
+Similar thing happens when trying longer time periods like year. Year return showed to have some extreme values with low probability of their occurence and very high probability of getting values close to the expected value.  
+In ther words, we can just say that making good money on stocks without any good knowledge involves only a great amount of luck and affecting circumstances. And if you're not lucky or if you simply know something about statistical analysis and ptobability, you need to use them :)
 
 ### Dependences
 Now we're going to check on some dependences between the data we have.  
@@ -232,9 +244,10 @@ no.date <- tsla.data[ , !(names(tsla.data) %in% drops)]
 dependence <- cor(no.date)
 dependence
 ```
-As we can see from the output the greatest correlation here can be seen between the values of low, high, close, open etc. columns. It was quite obvious to get such a result, since they all senote different values of the same, so to say, stock price function, that as we showed before do not change extremely in a short period of time.  
+As we can see from the output the greatest correlation here can be seen between the values of low, high, close, open etc. columns. It was quite obvious to get such a result, since they all denote different values of the same, so to say, stock price function, that as we showed before do not change extremely in a short period of time.  
 Still, we can make some use of these correlations. We can suggest a linnear relation between close and previous close price values in order to build a model for price predicitions.  
 We're going to plot the data in order to see the actual dependency between them.  
+  
 ```{r, echo=FALSE}
 ggplot(tsla.data, aes(x = PrevClose, y = Close)) +
   geom_line(color="grey24") +
@@ -244,16 +257,34 @@ ggplot(tsla.data, aes(x = PrevClose, y = Close)) +
   theme(axis.ticks.y=element_blank(),
         axis.ticks.x=element_blank())
 ```
+  
 It seems like there actualy might be some linear relation between the values of cloe and previous close prices.  
 A **linear regression** seems quite too simple model for such a case with stock prices, although we'll try it.  
   
-$H_0:$ there is no linear regression pattern in the stock prices behaviour
+$H_0:$ there is no linear regression pattern in the stock prices behaviour  
 $H_1:$ stock prices depend on the prices of the previous days and they follow a linnear regression model
 ```{r}
 price.lm <- lm(tsla.data$Close~tsla.data$PrevClose)
-
+```
+We'll also plot the regression line and check the regression summary.  
+  
+```{r, echo=FALSE}
+ggplot(tsla.data, aes(x = PrevClose, y = Close)) +
+  geom_line(color="grey24") +
+  geom_smooth(method='lm', formula=y~x) +
+  labs(x = "previous day closing price, $", y = "closing price, $",
+       title = "Tesla, Inc. closing stock prices dependence on previous data",
+       subtitle = "based on data from Jan.5, 2015 until Jan.4, 2020") +
+  theme(axis.ticks.y=element_blank(),
+        axis.ticks.x=element_blank())
+```
+  
+```{r}
 summary(price.lm)
 ```
-p-value of the F-test is almost 0 which means that we **reject $H_0$ and there is linnear relation**. Although residual standart error is quite large, as well as values of residuals statistics, to tell that model is good-fitted, as mentioned above - simple linner regression is still too simple model for this case.   
+p-value of the F-test is almost 0 which means that we **reject $H_0$ and there is linnear relation**. Although residual standart error is quite large, as well as values of residuals statistics, to tell that model is good-fitted, as mentioned above - simple linnear regression is still too simple model for this case.   
 
 ## Conclusions
+To sum up, we can say that there are not much obvious corellations between the stock data which makes stock prices prediction not a sample task to complete.  
+Still, during last months Tesla, Inc. stock prices are growing quite extremely which created a good setting for a linnear regression model testing.  
+We tested linear dependence between close and previous day close prices value and it turned out to be quite good but still not the best model, since the values of residuals were quite big. We believe that it is possible to improve model results by exploring other dependencies, although in the data we got there was no more important factors that could significantly increse the model performance. 
