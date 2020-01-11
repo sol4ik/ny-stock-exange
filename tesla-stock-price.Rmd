@@ -9,6 +9,8 @@ require(ggplot2)
 library(ggplot2)
 require(moments)
 library(moments)
+require(fitdistrplus)
+library(fitdistrplus)
 ```
 ## Task description
 Nowadays it is quite popular though that any person can make money on stock exchange - all you need is starter money and some knowledge.  
@@ -17,7 +19,7 @@ We decided to check if it is possible to get a big revenue from some big compani
 ## Data description
 For our research we first wanted to use the [**New York Stock Exchange dataset**](https://www.kaggle.com/dgawlik/nyse) that consists of the historical data on New York Stock Exchange from 2012 until 2016 parced from Yahoo! Finance. But since tha data are quite outdated and we do not need the data on all the companies, we decided to get similar data.  
 For our final dataset we downloaded the historical data on **Tesla, Inc.** stocks from Yahoo! Finanacefrom January 5, 2015 until January 4, 2020.  
-You can find the .csv file created [**here**](https://github.com/sol4ik/tsla-stocks-research/blob/master/TSLA.csv).  
+You can find the .csv file created [**here**](https://github.com/sol4ik/tsla-stocks-research/blob/master/TSLA-5.csv).  
 We're going to load the data and see what we have.  
 ```{r, message=FALSE}
 tsla.data <- read.csv("TSLA-5.csv")
@@ -121,7 +123,7 @@ Standart deviation here is not that small which tells us that there is a variety
 cat("skewness: ", skewness(tsla.data$YearRet), " ")
 cat("kurtosis: ", kurtosis(tsla.data$YearRet))
 ```
-Positive skewness tells us that the distribution of annual return has a heavy right-tail. In terms of the return itself it means that the values are mostly concentrated around the expected value, altough there is a small probability to get vaues musg bigger than the expected one.  
+Positive skewness tells us that the distribution of annual return has a heavy right-tail. In terms of the return itself it means that the values are mostly concentrated around the expected value, altough there is a small probability to get values much bigger than the expected one.  
 Positive kurtosis means that the distribution has so-called thick tails. The high value of kurtosis tells about frequent extreme values in the distribution. In terms of the data we have it again means that there are a lot of extreme values for the annual return.  
   
 For further analysis we'll visualize all the data we got on annual return.  
@@ -165,64 +167,93 @@ ggplot(data.frame(data = log.ret), aes(x = data)) +
 ```
 It would be expected to suggest that annual reurn follows a lognormal ditribution but since it assumes both positive and negative values lognormal distribution is not suitable here.  
 Our next suggestion here is **logistic distribution**. By its shape it may resemble a normal distribution altough it has heavier tail - meaning higher kurtosis.    
-
+In order to check it we're going to run **Kolmogorov-Smirnov test for goodness-of-fit**.  
+  
+$H_0:$ annual returns follow distribution $F$, being s logistic distribution with parameters $\mu = \hat{m_1}$ and $s = \frac{\sqrt{3}\hat{sd}}{\pi}$  
+$H_1:$ annual return does not follow distribution $F$
 ```{r}
-ggplot(data.frame(data =log.ret), aes(x = data)) +
-  stat_ecdf() +
-  stat_function(fun = plogis, color = "red")
+ks.test(tsla.data$YearRet, "plogis", location=mean(tsla.data$YearRet), scale=sqrt(3) * sd(tsla.data$YearRet) / pi)
 ```
-
-```{r}
-library(fitdistrplus)
-library(logspline)
+p-value of the test is almost zero which means that our guess was wrong and we reject $H_0$.  
+   
+In order to understand the distribution we'll go back to how we calculated it.  
+We used a formula $Y_t = (R_t + 1)^{365} - 1$, where $R_t$ was the value of a daily return.  
+We'll plot daily return data and try to fit them to some distribution in order to get some idea of how annual return is distributed.  
+```{r, echo=FALSE, message=FALSE}
+ggplot(tsla.data, aes(x = DailyRet)) +
+  geom_histogram(aes(y=..density..), color="gold4", fill="gold1") +
+  geom_vline(aes(xintercept = mean(DailyRet))) +
+  geom_vline(aes(xintercept = mean(DailyRet) + sd(DailyRet)),
+             color="brown", linetype="dashed") +
+  geom_vline(aes(xintercept = mean(DailyRet) - sd(DailyRet)),
+             color="brown", linetype="dashed") +
+  geom_density(color="darkorange4") +
+  labs(x = "Daily return",
+       title = "Histogram of daily returns on Tesla, Inc. stock prices",
+       subtitle="based on data from Jan.6, 2015 until Jan.4, 2020") +
+  theme(axis.title.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.text.y=element_blank())
 ```
-
 ```{r}
-# Error here!!!
-fit.logis <- fitdistr(tsla.data$YearRet, "normal")
+descdist(tsla.data$DailyRet)
+```
+It seems like daily returns might follow a logistic distribution.  
+```{r, warning=FALSE}
+fit.logis <- fitdist(tsla.data$DailyRet, "logis")
+plot(fit.logis)
+```
+```{r}
 fit.logis
 ```
+Now we'll run a test.
+
+$H_0:$ daily returns follow a distribution $F = \mathcal{logis}(0.001, 0.01)$
+$H_1:$ daily returns do not follow distribution $F$
 ```{r}
-ks.test(log.ret, "pnorm", mean=mean(log.ret), sd=sd(log.ret))
+ks.test(tsla.data$DailyRet, "plogis", location=fit.logis$estimate[1], scale=fit.logis$estimate[2])
 ```
-
-```{r}
-ann.rets <- rep(0, nrow(tsla.data))
-for (i in 1:nrow(tsla.data)-365) {
-  ann.rets[i] <- tsla.data$Close[i + 365] / tsla.data$Close[i] - 1
-}
-ann.rets
-
-ggplot(data.frame(x = ann.rets), aes(x = x)) +
-  geom_histogram()
-```
-
-### Conclusions
-
-## Linnear regression
-Getting back to the stock prices themselves, usually people use the historical data in order to analyze the pattern and be able to predict them.  
-A **linear regression** seems quite too simple model for such a difficult pattern but we need to start somewhere.  
+p-value of the test is not that big, so in most cases we need to reject $H_0$. Still the plots of fitting empirical data to theoretical ones look quite good, but following Cullen and Fray graph our data are not that close to actual theoretical logisitic distribution.      
+Still, there are no better estimates for the distribution, so we stick to **logistic distribution**.  
   
-There is no sence in dependence between time and the price but there might be some **dependence between prices of the day and the day-before**.  
-$H_0:$ there is no linear regression pattern in the stock prices behaviour
-$H_1:$ stock prices depend on the prices of the previous days and they follow a linnear regression model
-For this test we'll again use the closing stock prices.
+In order to caculate annual return we raised daily return + 1 to the power of 365, basically we did multiplying.   
+Prodcut of two and more i.i.d. r.v.s never has the same distribution. In fact, it has a **product distribution** except for some cases like lognormal distribution.  
+So, based on the way we calculated annual return, we make conclusion that our data on annual returns follow a **product distrubution**.  
+  
+#### Conclusions
+
+
+### Dependences
+Now we're going to check on some dependences between the data we have.  
 ```{r}
-price.lm <- lm(tsla.data$Close~tsla.data$PrevClose)
+drops <- c("Date")
+no.date <- tsla.data[ , !(names(tsla.data) %in% drops)]
 
-summary(price.lm)
+dependence <- cor(no.date)
+dependence
 ```
-p-value of the F-test is almost 0 which means that we **reject $H_0$**. Although residual standart error is quite large to tell that model is good-fitted.   
-
+As we can see from the output the greatest correlation here can be seen between the values of low, high, close, open etc. columns. It was quite obvious to get such a result, since they all senote different values of the same, so to say, stock price function, that as we showed before do not change extremely in a short period of time.  
+Still, we can make some use of these correlations. We can suggest a linnear relation between close and previous close price values in order to build a model for price predicitions.  
+We're going to plot the data in order to see the actual dependency between them.  
 ```{r, echo=FALSE}
 ggplot(tsla.data, aes(x = PrevClose, y = Close)) +
   geom_line(color="grey24") +
-  geom_smooth(method='lm', formula= y~x) +
   labs(x = "previous day closing price, $", y = "closing price, $",
        title = "Tesla, Inc. closing stock prices dependence on previous data",
        subtitle = "based on data from Jan.5, 2015 until Jan.4, 2020") +
   theme(axis.ticks.y=element_blank(),
         axis.ticks.x=element_blank())
 ```
+It seems like there actualy might be some linear relation between the values of cloe and previous close prices.  
+A **linear regression** seems quite too simple model for such a case with stock prices, although we'll try it.  
+  
+$H_0:$ there is no linear regression pattern in the stock prices behaviour
+$H_1:$ stock prices depend on the prices of the previous days and they follow a linnear regression model
+```{r}
+price.lm <- lm(tsla.data$Close~tsla.data$PrevClose)
 
-### Conclusions
+summary(price.lm)
+```
+p-value of the F-test is almost 0 which means that we **reject $H_0$ and there is linnear relation**. Although residual standart error is quite large, as well as values of residuals statistics, to tell that model is good-fitted, as mentioned above - simple linner regression is still too simple model for this case.   
+
+## Conclusions
