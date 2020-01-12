@@ -218,7 +218,7 @@ fit.logis
 ```
 Now we'll run a test.
 
-$H_0:$ daily returns follow a distribution $F = \mathcal{logis}(0.001, 0.01)$  
+$H_0:$ daily returns follow a distribution $F = logis(0.001, 0.01)$  
 $H_1:$ daily returns do not follow distribution $F$
 ```{r}
 ks.test(tsla.data$DailyRet, "plogis", location=fit.logis$estimate[1], scale=fit.logis$estimate[2])
@@ -233,7 +233,7 @@ So, based on the way we calculated annual return, we make conclusion that our da
 #### Conclusions
 As we mentioned above, the idea of making money on stocks in very short periods of time is not the best one, since the spread statistics of daily return got very small values and it's just impossible to get a great income, only unless you buy all the shares open on the market.  
 Similar thing happens when trying longer time periods like year. Year return showed to have some extreme values with low probability of their occurence and very high probability of getting values close to the expected value.  
-In ther words, we can just say that making good money on stocks without any good knowledge involves only a great amount of luck and affecting circumstances. And if you're not lucky or if you simply know something about statistical analysis and ptobability, you need to use them :)
+In ther words, we can just say that making good money on stocks without any good knowledge involves only a great amount of luck and affecting circumstances. And if you're not lucky or if you simply know something about statistical analysis and probability, you need to use them :)
 
 ### Dependences
 Now we're going to check on some dependences between the data we have.  
@@ -287,7 +287,7 @@ p-value of the F-test is almost 0 which means that we **reject $H_0$ and there i
 ## Conclusions
 To sum up, we can say that there are not much obvious corellations between the current stock price and previous closed one, which makes stock prices prediction not a simple task to complete.  
 Still, during last months Tesla, Inc. stock prices are growing quite extremely which created a good setting for a linnear regression model testing.  
-We tested linear dependence between close and previous day close prices value and it turned out to be quite good but still not the best model, since the values of residuals were quite big. We believe that it is possible to improve model results by exploring other dependencies, although in the data we got there was no more important factors that could significantly increse the model performance. 
+We tested linear dependence between close and previous day close prices value and it turned out to be quite good but still not the best model, since the values of residuals were quite big. We believe that it is possible to improve model results by exploring other dependencies, although in the data we got there was no more important factors that could significantly increase the model performance. 
 Overall, using our results and having an interest in new Tesla projects (e.g. new Cyber Track and Tesla Model 3) one may consider investing in Tesla stocks.
 
 
