@@ -218,7 +218,7 @@ fit.logis
 ```
 Now we'll run a test.
 
-$H_0:$ daily returns follow a distribution $F = \mathcal{logis}(0.001, 0.01)$  
+$H_0:$ daily returns follow a distribution $F = logis(0.001, 0.01)$  
 $H_1:$ daily returns do not follow distribution $F$
 ```{r}
 ks.test(tsla.data$DailyRet, "plogis", location=fit.logis$estimate[1], scale=fit.logis$estimate[2])
