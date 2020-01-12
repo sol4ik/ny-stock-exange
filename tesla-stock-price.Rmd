@@ -13,12 +13,12 @@ require(fitdistrplus)
 library(fitdistrplus)
 ```
 ## Task description
-Nowadays it is a quite popular thought that any person can make money on stock exchange - all you need is some starter money and a bit of knowledge.
-We decided to check if it is possible to get a big revenue from some big companies without much effort.
+Nowadays it is a quite popular thought that any person can make money on the stock exchange - all you need is some starter money and a bit of knowledge.
+We decided to check if it is possible to get big revenue from some big companies without much effort.
 
 ## Data description
-For our research we first wanted to use the [**New York Stock Exchange dataset**](https://www.kaggle.com/dgawlik/nyse) that consists of the historical data on New York Stock Exchange from 2012 until 2016 parced from Yahoo! Finance. But since tha data are quite outdated and we do not need the data on all the companies, we decided to get similar data.  
-For our final dataset we downloaded the historical data on **Tesla, Inc.** stocks from Yahoo! Finanace from January 5, 2015 until January 4, 2020.  
+For our research, we first wanted to use the [**New York Stock Exchange dataset**](https://www.kaggle.com/dgawlik/nyse) that consists of the historical data on New York Stock Exchange from 2012 until 2016 parsed from Yahoo! Finance. But since the data are quite outdated and we do not need the data on all the companies, we decided to get similar data.  
+For our final dataset, we downloaded the historical data on **Tesla, Inc.** stocks from Yahoo! Finance from January 5, 2015 until January 4, 2020.  
 You can find the .csv file created [**here**](https://github.com/sol4ik/tsla-stocks-research/blob/master/TSLA-5.csv).  
 We're going to load the data and see what we have.  
 ```{r, message=FALSE}
@@ -26,9 +26,9 @@ tsla.data <- read.csv("TSLA-5.csv")
 head(tsla.data)
 ```
 Here we have a data frame consisting of **7 different columns** and **1259** rows. What do these data mean?  
-Each row in tha data frame represent a day, the stock was out on a market. The date of the day can be found in the **date** column, consisting of date objects.  
-All the follwoing columns, except for the last one, tell us about the **price** of the stock. The **open** and **close** columns tell the price of the stock when the market opened and closed on that day. The **low** and **high** columns consist of the lowest and the highest values the stock price reached during the day. **Adj.Close** column consists of the close price adjusted for both dividends and splits, although it almost always is the same as the close one.  
-The last column - **volume** - consists of integer values refering to the numbers of shares that have been bought and sold for the day.  
+Each row in the data frame represent a day, the stock was out on the market. The date of the day can be found in the **date** column, consisting of data objects.  
+All the following columns, except for the last one, tell us about the **price** of the stock. The **open** and **close** columns tell the price of the stock when the market opened and closed on that day. The **low** and **high** columns consist of the lowest and the highest values the stock price reached during the day. **Adj.Close** column consists of the close price adjusted for both dividends and splits, although it almost always is the same as the close one.  
+The last column - **volume** - consists of integer values referring to the numbers of shares that have been bought and sold for the day.  
    
 ## Data analysis
 Let's first check how Tesla stock prices behaved themselves during the last five years.  
@@ -56,12 +56,12 @@ ggplot(graph.data) +
          axis.ticks.y=element_blank())
 ```
   
-As we can see here, the stock prices have significantly increased during last months. Let's then check if we can make some good money here :)  
+As we can see here, the stock prices have significantly increased during the last months. Let's then check if we can make some good money here :)  
   
 ### Daily return
-Since we wanted to check if we can make easy money on Tesla we'll test one of the easiest way - buying the shares one day and selling them the next day. Even easier way that does not envolve any tracking - buying and selling at the same time.  
+Since we wanted to check if we can make easy money on Tesla, we'll test one of the easiest ways - buying the shares one day and selling them the next day. Even easier way that does not involve any tracking - buying and selling at the same time.  
 For our case let's take the buying and selling time to be just before the market closes.  
-For this we'll need a **daily return** notion - the amount of stock price daily growth. Daily return is calculated by a simple intuitive formula
+For this we'll need a **daily return** notion - the amount of stock price daily growth. A simple intuitive formula calculates the Daily return
 $$R_t =  \frac{C_t - C_{t-1}}{C_{t-1}} = \frac{C_t}{C_{t-1}} - 1$$
 ```{r}
 tsla.data$PrevClose <- tsla.data$Close
@@ -73,19 +73,19 @@ tsla.data$DailyRet <- with(tsla.data, Close / PrevClose - 1)
 head(tsla.data)
 ```
 Now we'll see what we can say on the daily return values we got.  
-We can start off with some simple numeric characterics.
+We can start with some simple numeric characterics.
 ```{r}
 cat("mean value: ", mean(tsla.data$DailyRet), "  ")
 cat("max value: ", max(tsla.data$DailyRet), "  ")
 cat("min value: ", min(tsla.data$DailyRet), "\n")
 cat("standart deviation: ", sd(tsla.data$DailyRet))
 ```
-Looking at these numbers we already can say that day-to-day changes in the stock prices are not that significant. Small standart deviation tells us that variety of all the values is quite small meaning that day-to-day buying-selling is not a risky strategy.  
-It drives us to a conculsion that the strategy of selling the shares just the next day is **not the best strategy for a good money income, although it's a safe one** - you will not loose much if something goes wrong.  
+Looking at these numbers we already can say that day-to-day changes in the stock prices are not that significant. Small standard deviation tells us that a variety of all the values is quite small meaning that day-to-day buying-selling is not a risky strategy.  
+It drives us to a conclusion that the strategy of selling the shares just the next day is **not the best strategy for a good money income, although it's a safe one** - you will not lose much if something goes wrong.  
    
 ### Annual return
-Still, daily return can give even more information on some company stock prices - daily return can be used to derrive **annual return**.   
-Annual return is the approxiamation of finance return in a year. It can be calucated with a single daily return value by the following formula
+Still, a daily return can give even more information on some company stock prices - daily return can be used to derive **annual return**.   
+An annual return is the approximation of finance return in a year. It can be calculated with a single daily return value by the following formula
 $$Y_t = (R_t + 1)^{365} - 1$$
 We're now going to add one more column with calculated annual return.
 ```{r, echo=FALSE, message=FALSE}
@@ -125,8 +125,8 @@ Standart deviation here is not that small which tells us that there is a variety
 cat("skewness: ", skewness(tsla.data$YearRet), " ")
 cat("kurtosis: ", kurtosis(tsla.data$YearRet))
 ```
-Positive skewness tells us that the distribution of annual return has a heavy right-tail. In terms of the return itself it means that the values are mostly concentrated around the expected value, altough there is a small probability to get values much bigger than the expected one.  
-Positive kurtosis means that the distribution has so-called thick tails. The high value of kurtosis tells about frequent extreme values in the distribution. In terms of the data we have it again means that there are a lot of extreme values for the annual return.  
+Positive skewness tells us that the distribution of annual return has a heavy right-tail. In terms of return itself it means that values are mostly concentrated around expected value, although there is a small probability to get values much bigger than the expected one.  
+Positive kurtosis means that the distribution has so-called thick tails. The high value of kurtosis tells about frequent extreme values in the distribution. In terms of data, the fact that we got it one more time means that there are a lot of extreme values for an annual return.  
   
 For further analysis we'll visualize all the data we got on annual return.  
   
@@ -170,9 +170,9 @@ ggplot(data.frame(data = log.ret), aes(x = data)) +
         axis.text.y=element_blank())
 ```
   
-It would be expected to suggest that annual reurn follows a lognormal ditribution but since it assumes both positive and negative values lognormal distribution is not suitable here.  
-Our next suggestion here is **logistic distribution**. By its shape it may resemble a normal distribution altough it has heavier tail - meaning higher kurtosis.    
-In order to check it we're going to run **Kolmogorov-Smirnov test for goodness-of-fit**.  
+It would be expected to suggest that annual return follows a lognormal distribution, but since it assumes both positive and negative values lognormal distribution is not suitable here.  
+Our next suggestion here is **logistic distribution**. By its shape it may resemble a normal distribution although it has a heavier tail - meaning higher kurtosis.    
+To check it, we're going to run **Kolmogorov-Smirnov test for goodness-of-fit**.  
   
 $H_0:$ annual returns follow distribution $F$, being s logistic distribution with parameters $\mu = \hat{m_1}$ and $s = \frac{\sqrt{3}\hat{sd}}{\pi}$  
 $H_1:$ annual return does not follow distribution $F$
@@ -181,7 +181,7 @@ ks.test(tsla.data$YearRet, "plogis", location=mean(tsla.data$YearRet), scale=sqr
 ```
 p-value of the test is almost zero which means that our guess was wrong and we **reject $H_0$**.  
    
-In order to understand the annual return distribution we'll go back to how we calculated it.  
+To understand the annual return distribution we'll go back to how we calculated it.  
 We used a formula $Y_t = (R_t + 1)^{365} - 1$, where $R_t$ was the value of a daily return.  
 We'll plot daily return data and try to fit them to some distribution in order to get some idea of how annual return is distributed.  
   
@@ -226,17 +226,17 @@ ks.test(tsla.data$DailyRet, "plogis", location=fit.logis$estimate[1], scale=fit.
 p-value of the test is not that big, so in most cases we need to reject $H_0$. Still the plots of fitting empirical data to theoretical ones look quite good, but following Cullen and Fray graph our data are not that close to actual theoretical logisitic distribution.      
 Still, there are no better estimates for the distribution, so we stick to **logistic distribution**.  
   
-In order to caculate annual return we raised daily return + 1 to the power of 365, basically we did multiplying.   
-Prodcut of two and more i.i.d. r.v.s never has the same distribution. In fact, it has a **product distribution** except for some cases like lognormal distribution.  
-So, based on the way we calculated annual return, we make conclusion that our data on annual returns follow a **product distrubution**.  
+To calculate annual return we raised daily return + 1 to the power of 365, basically we did multiply.   
+Product of two and more i.i.d. r.v.s never has the same distribution. In fact, it has a **product distribution** except for some cases like lognormal distribution.  
+So, based on the way we calculated annual return, we make a conclusion that our data on annual returns follow a **product distrubution**.  
   
 #### Conclusions
-As we mentioned above, the idea of making money on stocks in very short periods of time is not the best one, since the spread statistics of daily return got very small values and it's just impossible to get a great income, only unless you buy all the shares open on the market.  
-Similar thing happens when trying longer time periods like year. Year return showed to have some extreme values with low probability of their occurence and very high probability of getting values close to the expected value.  
-In ther words, we can just say that making good money on stocks without any good knowledge involves only a great amount of luck and affecting circumstances. And if you're not lucky or if you simply know something about statistical analysis and ptobability, you need to use them :)
+As we mentioned above, the idea of making money on stocks in concise periods is not the best one, since the spread statistics of daily return got minimal values. It's just impossible to get a high income, only unless you buy all the shares open on the market.  
+A similar thing happens when trying more extended periods like year. Year return showed to have some extreme values with a low probability of their occurrence and very high probability of getting values close to the expected value.  
+In other words, we can say that making good money on stocks without any good knowledge involves only a great amount of luck and affecting circumstances. And if you're not lucky or if you simply know something about statistical analysis and probability, you need to use them :)
 
 ### Dependences
-Now we're going to check on some dependences between the data we have.  
+Now we're going to check on some dependencies between the data we have.  
 ```{r}
 drops <- c("Date")
 no.date <- tsla.data[ , !(names(tsla.data) %in% drops)]
@@ -244,8 +244,8 @@ no.date <- tsla.data[ , !(names(tsla.data) %in% drops)]
 dependence <- cor(no.date)
 dependence
 ```
-As we can see from the output the greatest correlation here can be seen between the values of low, high, close, open etc. columns. It was quite obvious to get such a result, since they all denote different values of the same, so to say, stock price function, that as we showed before do not change extremely in a short period of time.  
-Still, we can make some use of these correlations. We can suggest a linnear relation between close and previous close price values in order to build a model for price predicitions.  
+As we can see from the output the greatest correlation here can be seen between the values of low, high, close, open etc. columns. It was quite obvious to get such a result, since they all denote different values of the same, so to say, stock price function, that as we showed before do not change extremely in a short period.  
+Still, we can make some use of these correlations. We can suggest a linear relation between close and previous close price values to build a model for price predictions.  
 We're going to plot the data in order to see the actual dependency between them.  
   
 ```{r, echo=FALSE}
@@ -258,8 +258,8 @@ ggplot(tsla.data, aes(x = PrevClose, y = Close)) +
         axis.ticks.x=element_blank())
 ```
   
-It seems like there actualy might be some linear relation between the values of cloe and previous close prices.  
-A **linear regression** seems quite too simple model for such a case with stock prices, although we'll try it.  
+It seems like there actually might be some linear relations between the values of close and previous close prices.  
+A **linear regression** seems a quite too simple model for such a case with stock prices, although we'll try it.  
   
 $H_0:$ there is no linear regression pattern in the stock prices behaviour  
 $H_1:$ stock prices depend on the prices of the previous days and they follow a linnear regression model
@@ -282,12 +282,12 @@ ggplot(tsla.data, aes(x = PrevClose, y = Close)) +
 ```{r}
 summary(price.lm)
 ```
-p-value of the F-test is almost 0 which means that we **reject $H_0$ and there is linnear relation**. Although residual standart error is quite large, as well as values of residuals statistics, to tell that model is good-fitted, as mentioned above - simple linnear regression is still too simple model for this case.   
+p-value of the F-test is almost 0 which means that we **reject $H_0$ and there is linear relation**. Although residual standard error is quite large, as well as values of residuals statistics, to tell that model is good-fitted, as mentioned above - simple linear regression is still too simple model for this case.   
 
 ## Conclusions
-To sum up, we can say that there are not much obvious corellations between the current stock price and previous closed one, which makes stock prices prediction not a simple task to complete.  
-Still, during last months Tesla, Inc. stock prices are growing quite extremely which created a good setting for a linnear regression model testing.  
-We tested linear dependence between close and previous day close prices value and it turned out to be quite good but still not the best model, since the values of residuals were quite big. We believe that it is possible to improve model results by exploring other dependencies, although in the data we got there was no more important factors that could significantly increse the model performance. 
+To sum up, we can say that there are not many obvious correlations between the current stock price and previously closed one, which makes stock prices prediction not a simple task to complete.  
+Still, during last months Tesla, Inc. stock prices are growing quite extremely, which created a good setting for a linear regression model testing.  
+We tested linear dependence between close and previous day close prices value and it turned out to be quite good but still not the best model since the values of residuals were quite big. We believe that it is possible to improve model results by exploring other dependencies, although in the data we got there were no more important factors that could significantly increase the model performance. 
 Overall, using our results and having an interest in new Tesla projects (e.g. new Cyber Track and Tesla Model 3) one may consider investing in Tesla stocks.
 
 
